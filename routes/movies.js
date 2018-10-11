@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Movie, validateMovie } = require('../models/movies');
-const { Genre } = require('../models/genres');
+const { Movie, validateMovie } = require('../models/movie');
+const { Genre } = require('../models/genre');
 
 //Obtener Movies
 router.get('/', async(req, res) => {
@@ -26,7 +26,7 @@ router.post('/', async (req, res) =>{
     let movie = new Movie({ 
         title: req.body.title,
         numberInStock: req.body.numberInStock,
-        dailyRentalDate: req.body.dailyRentalDate,
+        dailyRentalRate: req.body.dailyRentalRate,
         genre: {
             _id: genre._id,
             name: genre.name
