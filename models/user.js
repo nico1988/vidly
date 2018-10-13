@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
 const PasswordComplexity = require('joi-password-complexity');
+const jwt = require('jsonwebtoken');
+const config = require('config');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -24,10 +26,14 @@ const userSchema = new mongoose.Schema({
     }
 });
 
+userSchema.methods.generateAuthToken = function(){
+    const token = jwt.sign({ _id: this._id, name: this.name }, config.get('jwtPrivateKey'));
+    return token;
+}
+
 const User = mongoose.model('user', userSchema);
 
 function validateUser(user){
-
     const passComplex = new PasswordComplexity({
         min: 6,
         max: 30,
@@ -43,7 +49,7 @@ function validateUser(user){
         email: Joi.string().required().min(6).max(255).email(),
         password: passComplex //Joi.string().required().min(6).max(30)
     };
-    
+
     return Joi.validate(user, schema);
 }
 
