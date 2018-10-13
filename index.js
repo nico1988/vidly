@@ -1,3 +1,5 @@
+require('express-async-errors'); // No es necesario guardarlo en una const 
+const winston = require('winston');
 const config = require('config');
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
@@ -10,7 +12,12 @@ const movies = require('./routes/movies');
 const rentals = require('./routes/rentals');
 const users = require('./routes/users');
 const auth = require('./routes/auth');
-const error = require('./middleware/error');
+const error = require('./middleware/error'); 
+
+winston.add(new winston.transports.File({
+    filename: 'logfile.log',
+    handleExceptions: true
+  }));
 
 if(!config.get('jwtPrivateKey')){
     console.log("FATAL ERROR! ");
