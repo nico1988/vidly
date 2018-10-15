@@ -14,6 +14,20 @@ const users = require('./routes/users');
 const auth = require('./routes/auth');
 const error = require('./middleware/error'); 
 
+// process.on('uncaughtException', (ex) => {
+//     winston.error(ex.message, ex);
+//     process.exit(1); 
+// });
+winston.handleExceptions( 
+    new winston.transports.File({ filename: 'uncaughtExceptions.log' })
+);
+
+process.on('unhandledRejection', (ex) => {
+    // winston.error(ex.message, ex);
+    // process.exit(1); //0 = success, cualquier otro numero es failure
+    throw ex;
+});
+
 winston.add(new winston.transports.File({
     filename: 'logfile.log',
     handleExceptions: true
