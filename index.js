@@ -3,10 +3,10 @@ const winston = require('winston');
 const config = require('config');
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
 require('./startup/routes')(app);
+require('./startup/db')();
 
 winston.exceptions.handle( 
     new winston.transports.File({ filename: 'uncaughtExceptions.log' })
@@ -22,17 +22,12 @@ winston.add(new winston.transports.File({
 }));
 
 if(!config.get('jwtPrivateKey')){
-    console.log("clave",config.get('jwtPrivateKey'));
-    console.log("FATAL ERROR!, jwtPrivateKey undefined ");
+    console.log("FATAL ERROR!!!, PrivateKey Undefined");
     process.exit(1);
 }
 
-mongoose.connect('mongodb://localhost/vidly', { useNewUrlParser: true, useCreateIndex: true })  
-    .then( () => { console.log("Connected to MongoDB") })
-    .catch(error => { console.log("No conectado") });
-
 app.get('/', (req, res) =>{
-    res.send("Welcome to Video");
+    res.send("Welcome to Video :D ");
 });
 
 const port = process.env.PORT || 3000;
