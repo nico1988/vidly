@@ -6,8 +6,8 @@ let server;
 describe('/api/genres', () => {
     beforeEach(() => { server = require('../../index'); });
     afterEach(async () => { 
+        await Genre.deleteMany({});
         server.close(); 
-        await Genre.remove({});
     });
 
     describe('GET /', () => {
@@ -42,8 +42,8 @@ describe('/api/genres', () => {
 
     describe('POST /', () => {
         let token, name;
-        const exec = async () => {
-            return await request(server)
+        const exec = () => {
+            return request(server)
                 .post('/api/genres')
                 .set('x-auth-token', token) //to set a header
                 .send({ name });
@@ -71,7 +71,7 @@ describe('/api/genres', () => {
             const res = await exec();
             expect(res.status).toBe(400);
         });
-
+ 
         it('should save the genre if it is valid', async () => {
             await exec();
             const genre = await Genre.find({ name: 'Genre X'});
