@@ -1,4 +1,5 @@
 const request = require('supertest');
+const moment = require('moment')
 const { Rental }  = require('../../models/rental');
 const { User }  = require('../../models/user');
 const mongoose = require('mongoose');
@@ -59,7 +60,35 @@ describe('/api/returns', () => {
     });
 
     it('should return 404 if no rental found for this customer/movie', async () => {
+        await Rental.remove({});
         const res = await exec();
         expect(res.status).toBe(404);
+    });
+
+    it('should return 400 if rental already processed', async () => {
+        rental.dateReturned = new Date();
+        await rental.save();
+        const res = await exec();
+        expect(res.status).toBe(400);
+    });
+
+    it('should return 200 if is a valid request', async () => {
+        const res = await exec();
+        expect(res.status).toBe(200);
+    });
+
+    it('should set the returnDate if input is valid', async () => {
+        const res = await exec();
+        const processedRental = await Rental.findById(rental._id);
+        const diff = new Date() - processedRental.dateReturned
+        expect(diff).toBeLessThan(10 * 1000);
+    });
+
+    it('should set the rental fee', async () => {
+        rental.dateOut = moment.add(-7, 'days').toDate();
+        await rental.save();
+        const res = await exec();
+        const processedRental = await Rental.findById(rental._id);
+        expect(processedRental.rentalFee).toBe(14);
     });
 });
