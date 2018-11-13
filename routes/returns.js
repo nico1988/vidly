@@ -1,27 +1,35 @@
-const auth = require('../middleware/auth');
-const moment = require('moment');
+
 const express = require('express');
 const router = express.Router();
+const Joi = require('joi');
+const auth = require('../middleware/auth');
 const validateObjectId = require('../middleware/validateObjectId');
 const { Rental } = require('../models/rental');
+const { Movie } = require('../models/movie');
+const validate = require('../middleware/validate');
 
 //Crear Genero
-router.post('/', auth, async (req, res) =>{
-    if(!req.body.customerId) return res.status(400).send('CustomerId not provided');
-    if(!req.body.movieId) return res.status(400).send('MovieId not provided');
-    let rental = await Rental.findOne({ 
-        "customer._id": req.body.customerId, 
-        "movie._id": req.body.movieId 
-    });
+router.post('/', [auth, validate(validateReturn)], async (req, res) =>{
+    let rental = await Rental.lookup(req.body.customerId, req.body.movieId);
     if(!rental) return res.status(404).send("Arriendo no encontrado");
     if(rental.dateReturned) return res.status(400).send("El arriendo ya ha sido devuelto");
 
-    rental.dateReturned = new Date();
-    const rentalDays = moment.diff(rental.dateOut, 'days');
-    rental.rentalFee = rentalDays * rental.movie.dailyRentalRate;
+    rental.return();
     await rental.save();
-    
-    return res.status(200).send(rental);
+
+    await Movie.update({_id: rental.movie._id}, {
+        $inc: { numberInStock: 1}
+    });
+    return res.send(rental);
 });
+
+function validateReturn(req){
+    const schema = {
+        customerId: Joi.objectId().required(),
+        movieId: Joi.objectId().required()
+    }
+
+    return Joi.validate(req, schema);
+}
 
 module.exports = router; 
